@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assignment 1 - SYDE 572</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    max-width: 850px;
+    margin: 0 auto;
+    padding: 20px 15px 60px;
+    color: #222;
+    line-height: 1.5;
+  }
+  h1 {
+    font-size: 1.8em;
+    margin-bottom: 5px;
+  }
+  h2 {
+    margin-top: 40px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 5px;
+  }
+  h3 {
+    color: #2b5d5a;
+    margin-top: 25px;
+  }
+  a { color: #1a5276; }
+  .subtitle {
+    color: #555;
+    margin-top: 0;
+    margin-bottom: 20px;
+  }
+  nav {
+    background: #f0f0f0;
+    padding: 10px 15px;
+    margin-bottom: 25px;
+    border: 1px solid #ccc;
+  }
+  nav a { margin-right: 15px; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 15px 0;
+  }
+  th, td {
+    border: 1px solid #999;
+    padding: 6px 10px;
+    text-align: left;
+  }
+  th { background: #eee; }
+  img {
+    max-width: 100%;
+    border: 1px solid #aaa;
+    margin: 10px 0;
+  }
+  figcaption {
+    font-size: 0.85em;
+    color: #555;
+    margin-bottom: 20px;
+  }
+  pre {
+    background: #f4f4f4;
+    border: 1px solid #ccc;
+    padding: 12px;
+    overflow-x: auto;
+    font-size: 0.85em;
+  }
+  code { font-family: Consolas, Monaco, monospace; }
+  .note {
+    background: #fffde7;
+    border-left: 4px solid #f9d71c;
+    padding: 8px 12px;
+    margin: 15px 0;
+    font-size: 0.92em;
+  }
+  hr {
+    border: none;
+    border-top: 1px solid #ccc;
+    margin: 30px 0;
+  }
+  .results {
+    font-family: Consolas, Monaco, monospace;
+    background: #f4f4f4;
+    padding: 10px;
+    font-size: 0.9em;
+    border: 1px solid #ccc;
+  }
+</style>
+</head>
+<body>
+
+<h1>Assignment 1: Point-to-Curve Distance and Curve Fitting</h1>
+<p class="subtitle">SYDE 572 - Larissa Rudenko</p>
+
+<nav>
+  <a href="#part1">Part 1</a>
+  <a href="#part2">Part 2</a>
+  <a href="#code">Code</a>
+  <a href="../index.html">&larr; back home</a>
+</nav>
+
+<h2 id="part1">Part 1 - Distance from a Point to a Function</h2>
+
+<p>The squared distance from a point <span>\((x_0,y_0)\)</span> to a curve <span>\(y=f(x)\)</span> is:</p>
+<p>\[ D(x) = (x-x_0)^2 + (f(x)-y_0)^2 \]</p>
+<p>We're using <span>\(f(x) = x^2+5\)</span> and 5 points: (0,0), (-4,0), (-8,0), (2,0), (6,0).</p>
+
+<h3>Analytical solution</h3>
+<p>Take the derivative and set it to 0:</p>
+<p>\[ D'(x) = 2(x-x_0) + 2(f(x)-y_0)f'(x) = 0 \]</p>
+
+<p>Worked out for point (0,0):</p>
+<p>\( D(x) = x^2 + (x^2+5)^2 = x^4 + 11x^2 + 25 \)</p>
+<p>\( D'(x) = 4x^3 + 22x = x(4x^2+22) \)</p>
+<p>Since \(4x^2+22\) is always positive, the only real root is x = 0. That gives the closest point (0,5) and distance = 5.</p>
+
+<div class="note">For the other 4 points the cubic doesn't factor nicely (irrational roots), so I solved it numerically for the decimal value instead of doing the full cubic formula by hand. Setup/method is identical for all 5, just the algebra gets messy.</div>
+
+<table>
+<tr><th>Point</th><th>x* on curve</th><th>y*</th><th>distance</th></tr>
+<tr><td>(0, 0)</td><td>0.000000</td><td>5.000000</td><td>5.000000</td></tr>
+<tr><td>(-4, 0)</td><td>-0.355470</td><td>5.126359</td><td>6.289845</td></tr>
+<tr><td>(-8, 0)</td><td>-0.672078</td><td>5.451689</td><td>9.133420</td></tr>
+<tr><td>(2, 0)</td><td>0.180745</td><td>5.032669</td><td>5.351396</td></tr>
+<tr><td>(6, 0)</td><td>0.519904</td><td>5.270300</td><td>7.603125</td></tr>
+</table>
+
+<figure>
+  <img src="media/part1_overview.png" alt="parabola with distance lines">
+  <figcaption>Fig 1. All 5 points with their shortest distance to the curve. Matches the table above.</figcaption>
+</figure>
+
+<h3>Numerical approach A: Newton-Raphson</h3>
+<p>Runs Newton's method on D'(x) = 0 directly using D''(x). Converges fast when derivatives are known.</p>
+<figure>
+  <img src="media/part1_newton_convergence.png" alt="newton raphson convergence plot">
+  <figcaption>Fig 2. Convergence for (-8,0), the point furthest from the curve. Took 9 iterations to hit tolerance 1e-7.</figcaption>
+</figure>
+
+<h3>Numerical approach B: Golden Section Search</h3>
+<p>Doesn't need derivatives, just brackets [a,b] and narrows using the golden ratio.</p>
+<figure>
+  <img src="media/part1_golden_bracket.png" alt="golden section search bracket plot">
+  <figcaption>Fig 3. Bracket narrowing for (-8,0). Took ~40 iterations - way more than Newton-Raphson since it's not using derivative info.</figcaption>
+</figure>
+
+<div class="results">
+Newton-Raphson and Golden Section both matched the analytical results to ~1e-6 for all 5 points.
+</div>
+
+<h3>Generalizing to non-polynomial functions</h3>
+<p>Same two functions work for any f/f'/f'' you pass in - tried it on exp, log, and sqrt:</p>
+<figure>
+  <img src="media/part1_nonpoly.png" alt="non polynomial function distance examples">
+  <figcaption>Fig 4. e^x, ln(x), sqrt(x) - both methods agree on all three.</figcaption>
+</figure>
+
+<hr>
+
+<h2 id="part2">Part 2 - Fitting a Line and a Parabola</h2>
+
+<p>Points: (0, 0.5), (1, 1.5), (2, 3.5), (3, 7.5). Fitting y = mx+b and y = ax^2+bx+c by minimizing MSE.</p>
+
+<p>\[ \text{MSE} = \frac{1}{n}\sum (y_i - \hat{f}(x_i))^2 \]</p>
+
+<h3>Analytical (normal equations)</h3>
+<p>Set each partial derivative of MSE to 0 and solve the resulting linear system.</p>
+
+<div class="results">
+Line:      m = 2.300, b = -0.200   -> MSE = 0.575<br>
+Parabola:  a = 0.750, b = 0.050, c = 0.550   -> MSE = 0.0125
+</div>
+
+<h3>Numerical (coordinate-wise multivariate Newton-Raphson)</h3>
+<p>Per the assignment instructions: optimize one parameter holding the other(s) fixed with a Newton step, then switch, repeat.</p>
+
+<figure>
+  <img src="media/part2_fit_progression.png" alt="line and parabola fit progression">
+  <figcaption>Fig 5. Fitted curve at a few iterations along the way for both. Converges to the same values as the analytical solution.</figcaption>
+</figure>
+<figure>
+  <img src="media/part2_mse_convergence.png" alt="mse convergence plot">
+  <figcaption>Fig 6. MSE per iteration (log scale). Line converges in ~15 steps, parabola takes longer (~25) since a/b/c are more correlated so each 1-parameter step makes less net progress.</figcaption>
+</figure>
+
+<hr>
+
+<h2 id="code">Code</h2>
+
+<h3>Part 1 - point_to_curve.py</h3>
+<pre><code>def find_distance_newton(x0, y0, f, df, ddf, initial_guess=0.0,
+                          tolerance=1e-7, max_iter=100):
+    x = initial_guess
+    for _ in range(max_iter):
+        D_prime = 2 * (x - x0) + 2 * (f(x) - y0) * df(x)
+        D_double_prime = 2 + 2 * (df(x) ** 2) + 2 * (f(x) - y0) * ddf(x)
+        next_x = x - D_prime / D_double_prime
+        if abs(next_x - x) < tolerance:
+            x = next_x
+            break
+        x = next_x
+    return ((x - x0) ** 2 + (f(x) - y0) ** 2) ** 0.5, x
+
+
+def golden_section_search(x0, y0, f, a, b, tolerance=1e-7):
+    phi = (1 + 5 ** 0.5) / 2
+    resphi = 2 - phi
+    dist_sq = lambda x: (x - x0) ** 2 + (f(x) - y0) ** 2
+    x1, x2 = a + resphi * (b - a), b - resphi * (b - a)
+    f_x1, f_x2 = dist_sq(x1), dist_sq(x2)
+    while abs(b - a) > tolerance:
+        if f_x1 < f_x2:
+            b, x2, f_x2 = x2, x1, f_x1
+            x1 = a + resphi * (b - a)
+            f_x1 = dist_sq(x1)
+        else:
+            a, x1, f_x1 = x1, x2, f_x2
+            x2 = b - resphi * (b - a)
+            f_x2 = dist_sq(x2)
+    best_x = (a + b) / 2
+    return dist_sq(best_x) ** 0.5, best_x</code></pre>
+
+<h3>Part 2 - alternating Newton-Raphson (line shown, parabola same idea with 3 params)</h3>
+<pre><code>m, b = 0.0, 0.0
+for it in range(16):
+    g  = (2/n) * np.sum((m*X + b - Y) * X)      # dMSE/dm
+    gg = (2/n) * np.sum(X**2)                    # d2MSE/dm2
+    m -= g / gg
+    g  = (2/n) * np.sum(m*X + b - Y)              # dMSE/db
+    gg = 2.0
+    b -= g / gg</code></pre>
+
+<p>Full scripts (point_to_curve.py, part2_fit_numeric.py) are in this folder if you want to run them yourself.</p>
+
+<hr>
+<p style="color:#777; font-size:0.85em;">Larissa Rudenko - Fall 2026</p>
+
+<script>
+  renderMathInElement(document.body, {
+    delimiters: [
+      {left: "\\[", right: "\\]", display: true},
+      {left: "\\(", right: "\\)", display: false}
+    ]
+  });
+</script>
+</body>
+</html>
