@@ -90,18 +90,70 @@
     font-size: 0.9em;
     border: 1px solid #ccc;
   }
+
+  .grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .grid2 figure { margin: 0; }
+  @media (max-width: 700px) {
+    .grid2 { grid-template-columns: 1fr; }
+  }
+
+  header.top {
+    background: #2b5d5a;
+    color: #fff;
+    padding: 22px 22px 18px;
+    margin-top: 0;
+  }
+  header.top p { margin: 0; }
+  header.top .course {
+    font-size: 0.85em;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+  header.top h1 {
+    font-size: 2.2em;
+    margin: 4px 0 2px;
+  }
+  header.top .tagline { font-size: 1.1em; }
+  header.top .author { margin-top: 10px; font-size: 0.9em; opacity: 0.85; }
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    border-top: none;
+    padding: 10px 16px;
+    margin-bottom: 25px;
+  }
+  nav a { margin-right: 0; text-decoration: none; font-weight: bold; }
+  nav a:hover { text-decoration: underline; }
+  nav a.home { margin-left: auto; font-weight: normal; }
+  h2 { scroll-margin-top: 60px; }
 </style>
 </head>
 <body>
 
-<h1>Assignment 1: Point-to-Curve Distance and Curve Fitting</h1>
-<p class="subtitle">SYDE 572 - Larissa Rudenko</p>
+<header class="top">
+  <p class="course">SYDE 572 &middot; Introduction to Pattern Recognition</p>
+  <h1>Assignment 1</h1>
+  <p class="tagline">Point-to-curve distance and curve fitting</p>
+  <p class="author">Larissa Rudenko</p>
+</header>
 
 <nav>
-  <a href="#part1">Part 1</a>
-  <a href="#part2">Part 2</a>
+  <a href="#part1">Part 1: Distance to a curve</a>
+  <a href="#part2">Part 2: Curve fitting</a>
+  <a href="#handcalcs">Hand calculations</a>
   <a href="#code">Code</a>
-  <a href="../index.html">&larr; back home</a>
+  <a class="home" href="../index.html">&larr; Home</a>
 </nav>
 
 <h2 id="part1">Part 1 - Distance from a Point to a Function</h2>
@@ -111,15 +163,27 @@
 <p>We're using <span>\(f(x) = x^2+5\)</span> and 5 points: (0,0), (-4,0), (-8,0), (2,0), (6,0).</p>
 
 <h3>Analytical solution</h3>
-<p>Take the derivative and set it to 0:</p>
-<p>\[ D'(x) = 2(x-x_0) + 2(f(x)-y_0)f'(x) = 0 \]</p>
+<p>For f(x) = x&sup2;+5 and a point (x<sub>0</sub>, 0), the squared distance and its derivatives are:</p>
+<p>\[ D(x) = (x-x_0)^2 + (x^2+5)^2 \]</p>
+<p>\[ D'(x) = 2(x-x_0) + 2(x^2+5)(2x) = 4x^3 + 22x - 2x_0 \]</p>
+<p>\[ D''(x) = 12x^2 + 22 \]</p>
+<p>D''(x) is positive for every x, so D is convex. That means D'(x) = 0 has exactly one solution and it is the global minimum, so there are no other critical points to check.</p>
 
-<p>Worked out for point (0,0):</p>
-<p>\( D(x) = x^2 + (x^2+5)^2 = x^4 + 11x^2 + 25 \)</p>
-<p>\( D'(x) = 4x^3 + 22x = x(4x^2+22) \)</p>
-<p>Since \(4x^2+22\) is always positive, the only real root is x = 0. That gives the closest point (0,5) and distance = 5.</p>
+<p><b>Solving the cubic with Cardano's formula.</b> Divide D'(x) = 0 by 4:</p>
+<p>\[ x^3 + \tfrac{11}{2}x - \tfrac{x_0}{2} = 0 \]</p>
+<p>There is no x&sup2; term, so this is already in the form x&sup3; + px + q = 0 with p = 11/2 and q = -x<sub>0</sub>/2. The discriminant is:</p>
+<p>\[ \Delta = \left(\tfrac{q}{2}\right)^2 + \left(\tfrac{p}{3}\right)^3 = \tfrac{x_0^2}{16} + \tfrac{1331}{216} \]</p>
+<p>Δ is positive for every x<sub>0</sub>, so there is exactly one real root (this agrees with the convexity argument), and Cardano gives it directly:</p>
+<p>\[ x^* = \sqrt[3]{\tfrac{x_0}{4} + \sqrt{\Delta}} + \sqrt[3]{\tfrac{x_0}{4} - \sqrt{\Delta}} \]</p>
+<p>Then y* = x*&sup2; + 5 and the distance is d = &radic;((x* - x<sub>0</sub>)&sup2; + y*&sup2;).</p>
 
-<div class="note">For the other 4 points the cubic doesn't factor nicely (irrational roots), so I solved it numerically for the decimal value instead of doing the full cubic formula by hand. Setup/method is identical for all 5, just the algebra gets messy.</div>
+<p><b>Worked example, point (-8, 0).</b> Here x<sub>0</sub>/4 = -2 and Δ = 64/16 + 1331/216 = 10.1620, so &radic;Δ = 3.1878.</p>
+<p>\( x^* = \sqrt[3]{-2+3.1878} + \sqrt[3]{-2-3.1878} = 1.0591 - 1.7312 = -0.6721 \)</p>
+<p>\( y^* = (-0.6721)^2 + 5 = 5.4517 \), and \( d = \sqrt{(-0.6721+8)^2 + 5.4517^2} = \sqrt{53.70 + 29.72} = 9.133 \)</p>
+
+<p><b>Point (0, 0).</b> The cubic factors, since D'(x) = x(4x&sup2;+22) and 4x&sup2;+22 is always positive. So x* = 0, the closest point is (0, 5) and d = 5.</p>
+
+<p>The same formula was applied to the other three points. I also checked all five against sympy's solver in the code and they agree:</p>
 
 <table>
 <tr><th>Point</th><th>x* on curve</th><th>y*</th><th>distance</th></tr>
@@ -136,107 +200,233 @@
 </figure>
 
 <h3>Numerical approach A: Newton-Raphson</h3>
-<p>Runs Newton's method on D'(x) = 0 directly using D''(x). Converges fast when derivatives are known.</p>
+<p>Newton's method applied to D'(x) = 0:</p>
+<p>\[ x_{k+1} = x_k - \frac{D'(x_k)}{D''(x_k)} = x_k - \frac{4x_k^3 + 22x_k - 2x_0}{12x_k^2 + 22} \]</p>
+<ul>
+  <li><b>Initial guess:</b> the x-coordinate of the given point (so x = -8 for the point (-8, 0)).</li>
+  <li><b>Stopping rule:</b> stop when |x<sub>k+1</sub> - x<sub>k</sub>| &lt; 10<sup>-7</sup> (max 100 iterations).</li>
+</ul>
+
+<table>
+<tr><th>Point</th><th>Iterations</th><th>Newton x*</th><th>Newton d</th><th>Analytical d</th></tr>
+<tr><td>(0, 0)</td><td>1</td><td>0.0000000</td><td>5.000000</td><td>5.000000</td></tr>
+<tr><td>(-4, 0)</td><td>7</td><td>-0.3554697</td><td>6.289845</td><td>6.289845</td></tr>
+<tr><td>(-8, 0)</td><td>9</td><td>-0.6720781</td><td>9.133420</td><td>9.133420</td></tr>
+<tr><td>(2, 0)</td><td>6</td><td>0.1807446</td><td>5.351396</td><td>5.351396</td></tr>
+<tr><td>(6, 0)</td><td>8</td><td>0.5199037</td><td>7.603125</td><td>7.603125</td></tr>
+</table>
+
+<p>Newton matches the analytical distance to all six decimals for every point. (0, 0) takes only 1 iteration because the starting guess x = 0 already satisfies D'(0) = 0, so the step size is zero and the loop stops immediately. The other points start further from the answer and take 6 to 9 iterations; (-8, 0) is the slowest because it starts furthest away.</p>
+
 <figure>
-  <img src="media/part1_newton_convergence.png" alt="newton raphson convergence plot">
-  <figcaption>Fig 2. Convergence for (-8,0), the point furthest from the curve. Took 9 iterations to hit tolerance 1e-7.</figcaption>
+  <img src="media/part1_newton_convergence.png" alt="newton raphson convergence for all five points">
+  <figcaption>Fig 2. Error |x<sub>k</sub> - x*| on a log scale for all five points. Near the end the error shrinks very quickly, which is the quadratic convergence Newton's method is known for.</figcaption>
 </figure>
 
-<h3>Numerical approach B: Golden Section Search</h3>
-<p>Doesn't need derivatives, just brackets [a,b] and narrows using the golden ratio.</p>
-<figure>
-  <img src="media/part1_golden_bracket.png" alt="golden section search bracket plot">
-  <figcaption>Fig 3. Bracket narrowing for (-8,0). Took ~40 iterations - way more than Newton-Raphson since it's not using derivative info.</figcaption>
-</figure>
-
-<div class="results">
-Newton-Raphson and Golden Section both matched the analytical results to ~1e-6 for all 5 points.
+<p>Each iterate is drawn on the parabola below (square markers, darker = earlier). Iterate 0 is the starting guess and the dashed line is the final distance.</p>
+<div class="grid2">
+  <figure>
+    <img src="media/part1_newton_steps_0_0.png" alt="newton iterates for (0,0)">
+    <figcaption>(0, 0): 1 iteration</figcaption>
+  </figure>
+  <figure>
+    <img src="media/part1_newton_steps_-4_0.png" alt="newton iterates for (-4,0)">
+    <figcaption>(-4, 0): 7 iterations</figcaption>
+  </figure>
+  <figure>
+    <img src="media/part1_newton_steps_-8_0.png" alt="newton iterates for (-8,0)">
+    <figcaption>(-8, 0): 9 iterations</figcaption>
+  </figure>
+  <figure>
+    <img src="media/part1_newton_steps_2_0.png" alt="newton iterates for (2,0)">
+    <figcaption>(2, 0): 6 iterations</figcaption>
+  </figure>
+  <figure>
+    <img src="media/part1_newton_steps_6_0.png" alt="newton iterates for (6,0)">
+    <figcaption>(6, 0): 8 iterations</figcaption>
+  </figure>
 </div>
 
+<h3>Numerical approach B: Golden Section Search</h3>
+<p>Golden Section Search needs no derivatives. It only compares values of D(x) at two interior points of a bracket [a, b] that contains the minimum. With r = 2 - &phi; = 0.381966:</p>
+<p>\[ x_1 = a + r(b-a), \qquad x_2 = b - r(b-a) \]</p>
+<ul>
+  <li>If D(x<sub>1</sub>) &lt; D(x<sub>2</sub>), the minimum is on the left, so set b = x<sub>2</sub>.</li>
+  <li>Otherwise set a = x<sub>1</sub>.</li>
+  <li>The old interior point is reused as one of the new ones, so each iteration needs only one new evaluation of D.</li>
+  <li><b>Initial bracket:</b> [x<sub>0</sub> - 10, x<sub>0</sub> + 10], for example [-18, 2] for the point (-8, 0).</li>
+  <li><b>Stopping rule:</b> stop when b - a &le; 10<sup>-7</sup>.</li>
+</ul>
+<p>Every iteration keeps 61.8% of the bracket, so the width goes 20, 12.36, 7.64, 4.72, 2.92, and so on. The first five steps for (-8, 0) are below. Each panel shows D(x) (log scale), the current bracket shaded, and the two interior points as dots. The last panel shows the bracket width against the step number, which is a straight line on the log axis.</p>
+
+<figure>
+  <img src="media/part1_golden_steps.png" alt="first five golden section iterations for (-8,0)">
+  <figcaption>Fig 3. First five Golden Section iterations for (-8, 0) with bracket [-18, 2]. The minimum stays inside the shaded bracket every step.</figcaption>
+</figure>
+
+<table>
+<tr><th>Point</th><th>Bracket</th><th>Iterations</th><th>Golden x*</th><th>Golden d</th><th>Analytical d</th></tr>
+<tr><td>(0, 0)</td><td>[-10, 10]</td><td>40</td><td>0.0000000</td><td>5.000000</td><td>5.000000</td></tr>
+<tr><td>(-4, 0)</td><td>[-14, 6]</td><td>40</td><td>-0.3554697</td><td>6.289845</td><td>6.289845</td></tr>
+<tr><td>(-8, 0)</td><td>[-18, 2]</td><td>40</td><td>-0.6720781</td><td>9.133420</td><td>9.133420</td></tr>
+<tr><td>(2, 0)</td><td>[-8, 12]</td><td>40</td><td>0.1807446</td><td>5.351396</td><td>5.351396</td></tr>
+<tr><td>(6, 0)</td><td>[-4, 16]</td><td>40</td><td>0.5199037</td><td>7.603125</td><td>7.603125</td></tr>
+</table>
+<p>All five points take exactly 40 iterations. That is because the bracket is always 20 wide and shrinks by the same factor every step, so it reaches the 10<sup>-7</sup> tolerance after the same number of steps wherever the point is. Newton's count depends on the starting distance from the answer; Golden Section's does not.</p>
+
+<h3>Comparison of the three methods</h3>
+<table>
+<tr><th>Point</th><th>Analytical d</th><th>Newton d (iters)</th><th>Golden Section d (iters)</th></tr>
+<tr><td>(0, 0)</td><td>5.000000</td><td>5.000000 (1)</td><td>5.000000 (40)</td></tr>
+<tr><td>(-4, 0)</td><td>6.289845</td><td>6.289845 (7)</td><td>6.289845 (40)</td></tr>
+<tr><td>(-8, 0)</td><td>9.133420</td><td>9.133420 (9)</td><td>9.133420 (40)</td></tr>
+<tr><td>(2, 0)</td><td>5.351396</td><td>5.351396 (6)</td><td>5.351396 (40)</td></tr>
+<tr><td>(6, 0)</td><td>7.603125</td><td>7.603125 (8)</td><td>7.603125 (40)</td></tr>
+</table>
+<p>All three methods agree to six decimals for every point. Newton needs 1 to 9 iterations but needs f, f' and f''. Golden Section needs about four times as many iterations but only needs f and a bracket.</p>
+
 <h3>Generalizing to non-polynomial functions</h3>
-<p>Same two functions work for any f/f'/f'' you pass in - tried it on exp, log, and sqrt:</p>
+<p>The two numerical routines take f (and f', f'' for Newton) as inputs, so switching function just means passing different functions. The polynomial structure is never used. Below are e<sup>x</sup>, ln x and &radic;x, each with both methods.</p>
 <figure>
   <img src="media/part1_nonpoly.png" alt="non polynomial function distance examples">
-  <figcaption>Fig 4. e^x, ln(x), sqrt(x) - both methods agree on all three.</figcaption>
+  <figcaption>Fig 4. Closest point on e<sup>x</sup>, ln x and &radic;x. The square is the Newton answer, the open diamond is the Golden Section answer, and they land on top of each other. Grey shading marks x values outside the domain.</figcaption>
 </figure>
+
+<table>
+<tr><th>Function</th><th>Point</th><th>Newton guess</th><th>Golden bracket</th><th>Newton x*</th><th>Golden x*</th><th>d (both)</th></tr>
+<tr><td>e<sup>x</sup></td><td>(2, 0)</td><td>0</td><td>[-5, 5]</td><td>0.273150</td><td>0.273150</td><td>2.169991</td></tr>
+<tr><td>ln x</td><td>(3, 0)</td><td>1</td><td>[0.001, 10]</td><td>2.632315</td><td>2.632315</td><td>1.035351</td></tr>
+<tr><td>&radic;x</td><td>(4, 0)</td><td>1</td><td>[0.001, 10]</td><td>3.500000</td><td>3.500000</td><td>1.936492</td></tr>
+</table>
+<p><b>Domain.</b> ln x and &radic;x are only defined for x &gt; 0. A Newton step can overshoot to a negative x and produce nan, so both start inside the domain at x = 1. Golden Section can never leave its bracket, so the bracket starts just above 0 at 0.001. The &radic;x answer can be checked by hand: D'(x) = 0 gives x = 3.5, so d = &radic;(0.25 + 3.5) = 1.936492, which matches.</p>
+
+<h3>More examples: other functions and points</h3>
+<p>To check that the routines are not tied to the given parabola, here are two more tests: a function with a variable in the denominator, and a different parabola with two different points.</p>
+
+<figure>
+  <img src="media/part1_more.png" alt="distance to 1/x and to a second parabola">
+  <figcaption>Fig 5. Left: f(x) = 1/x with the point (0, 0). Right: y = 0.5x&sup2; - 2x + 1 with the points (4, 5) and (-2, 6). Squares are the closest points found by Newton; on the left the open diamond is the Golden Section answer, sitting exactly on top.</figcaption>
+</figure>
+
+<p><b>f(x) = 1/x, point (0, 0).</b> Only the right branch (x &gt; 0) is searched, since f is undefined at 0 and the left branch is a mirror image. Newton starts at x = 1.5 and Golden Section uses the bracket [0.1, 5]. This one can be done by hand: D(x) = x&sup2; + 1/x&sup2;, so D'(x) = 2x - 2/x&sup3; = 0 gives x&#8308; = 1, so x* = 1 and d = &radic;2.</p>
+<table>
+<tr><th>Method</th><th>x*</th><th>d</th></tr>
+<tr><td>Exact (by hand)</td><td>1.000000</td><td>1.414214</td></tr>
+<tr><td>Newton-Raphson</td><td>1.000000</td><td>1.414214</td></tr>
+<tr><td>Golden Section</td><td>1.000000</td><td>1.414214</td></tr>
+</table>
+
+<p><b>y = 0.5x&sup2; - 2x + 1.</b> For this parabola D'(x) = 0 is again a cubic, so the analytical column is found by solving that cubic and keeping the real root that gives the smallest distance. Newton starts at the point's x-coordinate and Golden Section uses x<sub>0</sub> &plusmn; 10, same as before.</p>
+<table>
+<tr><th>Point</th><th>Analytical d</th><th>Newton d (x*)</th><th>Golden Section d (x*)</th></tr>
+<tr><td>(4, 5)</td><td>1.404790</td><td>1.404790 (5.345963)</td><td>1.404790 (5.345963)</td></tr>
+<tr><td>(-2, 6)</td><td>0.249621</td><td>0.249621 (-1.758770)</td><td>0.249621 (-1.758770)</td></tr>
+</table>
+<p>All three methods agree for every case, so the code works for any parabola and for non-polynomial functions, including ones where the domain is restricted.</p>
 
 <hr>
 
 <h2 id="part2">Part 2 - Fitting a Line and a Parabola</h2>
 
-<p>Points: (0, 0.5), (1, 1.5), (2, 3.5), (3, 7.5). Fitting y = mx+b and y = ax^2+bx+c by minimizing MSE.</p>
+<p>Data points: (0, 0.5), (1, 1.5), (2, 3.5), (3, 7.5). We fit a line y = mx + b and a parabola y = ax&sup2; + bx + c by minimizing the mean squared error:</p>
+<p>\[ \text{MSE} = \frac{1}{N}\sum_{i=1}^{N} \left(\hat{y}(x_i) - y_i\right)^2, \qquad N = 4 \]</p>
+<p>Sums from the data, used in every equation below: &Sigma;x = 6, &Sigma;x&sup2; = 14, &Sigma;x&sup3; = 36, &Sigma;x&#8308; = 98, &Sigma;y = 13, &Sigma;xy = 31, &Sigma;x&sup2;y = 83.</p>
 
-<p>\[ \text{MSE} = \frac{1}{n}\sum (y_i - \hat{f}(x_i))^2 \]</p>
+<h3>Analytical solution: line</h3>
+<p>\[ \text{MSE}(m,b) = \tfrac{1}{4}\sum (m x_i + b - y_i)^2 \]</p>
+<p>\[ \frac{\partial \text{MSE}}{\partial m} = \tfrac{1}{2}\sum (m x_i + b - y_i)\,x_i = \tfrac{1}{2}\left(14m + 6b - 31\right) \]</p>
+<p>\[ \frac{\partial \text{MSE}}{\partial b} = \tfrac{1}{2}\sum (m x_i + b - y_i) = \tfrac{1}{2}\left(6m + 4b - 13\right) \]</p>
+<p>Setting both to zero gives the normal equations:</p>
+<p>\[ 14m + 6b = 31, \qquad 6m + 4b = 13 \]</p>
+<p>Multiply the first by 2 and the second by 3 so the b terms match (28m + 12b = 62 and 18m + 12b = 39). Subtracting gives 10m = 23, so <b>m = 2.3</b>, and then <b>b = (13 - 13.8)/4 = -0.2</b>.</p>
+<p>Residuals are -0.7, 0.6, 0.9, -0.8, so the squared errors add to 2.30 and <b>MSE = 2.30/4 = 0.575</b>.</p>
 
-<h3>Analytical (normal equations)</h3>
-<p>Set each partial derivative of MSE to 0 and solve the resulting linear system.</p>
+<h3>Analytical solution: parabola</h3>
+<p>\[ \text{MSE}(a,b,c) = \tfrac{1}{4}\sum (a x_i^2 + b x_i + c - y_i)^2 \]</p>
+<p>\[ \frac{\partial \text{MSE}}{\partial a} = \tfrac{1}{2}\left(98a + 36b + 14c - 83\right) \]</p>
+<p>\[ \frac{\partial \text{MSE}}{\partial b} = \tfrac{1}{2}\left(36a + 14b + 6c - 31\right) \]</p>
+<p>\[ \frac{\partial \text{MSE}}{\partial c} = \tfrac{1}{2}\left(14a + 6b + 4c - 13\right) \]</p>
+<p>Setting all three to zero gives three normal equations:</p>
+<p>\[ 98a + 36b + 14c = 83, \quad 36a + 14b + 6c = 31, \quad 14a + 6b + 4c = 13 \]</p>
+<p>Solving this 3&times;3 system (by hand in the attached calculations, and with sympy in the code) gives <b>a = 0.75, b = 0.05, c = 0.55</b>. Check: 98(0.75) + 36(0.05) + 14(0.55) = 73.5 + 1.8 + 7.7 = 83, and the other two equations also check out. The residuals are 0.05, -0.15, 0.15, -0.05, so <b>MSE = 0.05/4 = 0.0125</b>.</p>
 
-<div class="results">
-Line:      m = 2.300, b = -0.200   -> MSE = 0.575<br>
-Parabola:  a = 0.750, b = 0.050, c = 0.550   -> MSE = 0.0125
-</div>
+<table>
+<tr><th>Model</th><th>Parameters</th><th>MSE</th></tr>
+<tr><td>Line</td><td>m = 2.3, b = -0.2</td><td>0.575</td></tr>
+<tr><td>Parabola</td><td>a = 0.75, b = 0.05, c = 0.55</td><td>0.0125</td></tr>
+</table>
+<p>The parabola fits much better (MSE is 46 times smaller), which makes sense because the data curve upward.</p>
 
-<h3>Numerical (coordinate-wise multivariate Newton-Raphson)</h3>
-<p>Per the assignment instructions: optimize one parameter holding the other(s) fixed with a Newton step, then switch, repeat.</p>
+<h3>Numerical solution: coordinate-wise Newton-Raphson</h3>
+<p>As the assignment describes, we optimize one parameter while the others are held fixed, then move to the next parameter, and repeat. Each one-parameter step is a Newton step, x &larr; x - (first derivative)/(second derivative), using the derivatives above. One <i>sweep</i> means one Newton step for every parameter (2 steps for the line, 3 for the parabola). Everything starts from 0.</p>
+<p><b>Line</b> (second derivatives are 7 for m and 2 for b):</p>
+<p>\[ m \leftarrow m - \frac{14m + 6b - 31}{14}, \qquad b \leftarrow b - \frac{6m + 4b - 13}{4} \]</p>
+<p><b>Parabola</b> (second derivatives are 49, 7 and 2):</p>
+<p>\[ a \leftarrow a - \frac{98a + 36b + 14c - 83}{98}, \quad b \leftarrow b - \frac{36a + 14b + 6c - 31}{14}, \quad c \leftarrow c - \frac{14a + 6b + 4c - 13}{4} \]</p>
+<p>First sweep for the line, by hand: m = 0 - (0 + 0 - 31)/14 = 2.2143, then b = 0 - (6(2.2143) + 0 - 13)/4 = -0.0714, which gives MSE = 0.5842.</p>
+
+<table>
+<tr><th>Sweep</th><th>Line m</th><th>Line b</th><th>Line MSE</th><th>Parabola a</th><th>Parabola b</th><th>Parabola c</th><th>Parabola MSE</th></tr>
+<tr><td>0</td><td>0</td><td>0</td><td>17.750000</td><td>0</td><td>0</td><td>0</td><td>17.750000</td></tr>
+<tr><td>1</td><td>2.214286</td><td>-0.071429</td><td>0.584184</td><td>0.846939</td><td>0.036443</td><td>0.231050</td><td>0.117988</td></tr>
+<tr><td>2</td><td>2.244898</td><td>-0.117347</td><td>0.578795</td><td>0.800544</td><td>0.056722</td><td>0.363012</td><td>0.046400</td></tr>
+<tr><td>3</td><td>2.264577</td><td>-0.146866</td><td>0.576568</td><td>0.774243</td><td>0.067798</td><td>0.438452</td><td>0.023332</td></tr>
+<tr><td>final</td><td>2.300000</td><td>-0.200000</td><td>0.575000</td><td>0.750000</td><td>0.050000</td><td>0.550000</td><td>0.012500</td></tr>
+<tr><td>analytical</td><td>2.3</td><td>-0.2</td><td>0.575</td><td>0.75</td><td>0.05</td><td>0.55</td><td>0.0125</td></tr>
+</table>
+
+<table>
+<tr><th></th><th>Line</th><th>Parabola</th></tr>
+<tr><td>Sweeps until MSE is within 10<sup>-6</sup> of the minimum</td><td>12</td><td>74</td></tr>
+<tr><td>Sweeps until every parameter changes by less than 10<sup>-8</sup></td><td>37</td><td>342</td></tr>
+<tr><td>Largest parameter error vs analytical answer</td><td>1.6&times;10<sup>-8</sup></td><td>2.8&times;10<sup>-7</sup></td></tr>
+</table>
+<p>Run to convergence, the numerical method reaches the analytical values for both fits (same MSE, 0.575 and 0.0125). The parabola takes many more sweeps than the line. A Newton step is exact for a quadratic, so each one-parameter step finds the best value of that one parameter, but the best value shifts again as soon as the other parameters move. For the parabola the columns x&sup2;, x and 1 are strongly correlated on this data, so each step undoes part of the previous one and progress is slow. Updating all parameters together (full multivariate Newton) would solve either fit in a single step; the one-at-a-time version is what the assignment asks for.</p>
 
 <figure>
   <img src="media/part2_fit_progression.png" alt="line and parabola fit progression">
-  <figcaption>Fig 5. Fitted curve at a few iterations along the way for both. Converges to the same values as the analytical solution.</figcaption>
+  <figcaption>Fig 6. Fitted curve at several points along the way. The legend counts single-parameter Newton steps (2 per sweep for the line, 3 per sweep for the parabola), and the last curve shown is after 16 sweeps for the line and 25 sweeps for the parabola.</figcaption>
 </figure>
 <figure>
   <img src="media/part2_mse_convergence.png" alt="mse convergence plot">
-  <figcaption>Fig 6. MSE per iteration (log scale). Line converges in ~15 steps, parabola takes longer (~25) since a/b/c are more correlated so each 1-parameter step makes less net progress.</figcaption>
+  <figcaption>Fig 7. MSE after each single-parameter step (log scale), for the first 16 sweeps of the line and the first 25 sweeps of the parabola. The line is already at 0.575 by the end of the plot. The parabola is still slightly above its minimum (0.012528 vs 0.0125) and needs 74 sweeps to get within 10<sup>-6</sup>, as in the table above.</figcaption>
 </figure>
+<hr>
+
+<h2 id="handcalcs">Hand calculations</h2>
+<p>The worked-out solutions by hand for Part 1 (analytical, Newton-Raphson and Golden Section) and Part 2 (line and parabola, analytical and numerical) are in one PDF:</p>
+<p><a href="hand_calculations.pdf">Open the hand calculations (PDF)</a></p>
 
 <hr>
 
 <h2 id="code">Code</h2>
 
-<h3>Part 1 - point_to_curve.py</h3>
-<pre><code>def find_distance_newton(x0, y0, f, df, ddf, initial_guess=0.0,
-                          tolerance=1e-7, max_iter=100):
-    x = initial_guess
-    for _ in range(max_iter):
-        D_prime = 2 * (x - x0) + 2 * (f(x) - y0) * df(x)
-        D_double_prime = 2 + 2 * (df(x) ** 2) + 2 * (f(x) - y0) * ddf(x)
-        next_x = x - D_prime / D_double_prime
-        if abs(next_x - x) < tolerance:
-            x = next_x
-            break
-        x = next_x
-    return ((x - x0) ** 2 + (f(x) - y0) ** 2) ** 0.5, x
+<p>All scripts are in this folder. Each is run from inside the folder (<code>python3 script_name.py</code>) and needs numpy, sympy and matplotlib.</p>
+<table>
+<tr><th>File</th><th>What it does</th></tr>
+<tr><td><a href="point_to_curve.py">point_to_curve.py</a></td><td>The two numerical routines: <code>find_distance_newton</code> and <code>golden_section_search</code>. Both take any f (and f', f'' for Newton).</td></tr>
+<tr><td><a href="part1_solve_and_plot.py">part1_solve_and_plot.py</a></td><td>Part 1 analytical solution with sympy, numerical results, first versions of the Part 1 plots</td></tr>
+<tr><td><a href="part1_iterations.py">part1_iterations.py</a></td><td>Newton convergence plot and the 5-panel Golden Section figure</td></tr>
+<tr><td><a href="part1_newton_all.py">part1_newton_all.py</a></td><td>One Newton iteration figure per point</td></tr>
+<tr><td><a href="part1_extras.py">part1_extras.py</a></td><td>Overview plot and the e<sup>x</sup>, ln x, &radic;x comparison</td></tr>
+<tr><td><a href="part1_more.py">part1_more.py</a></td><td>The 1/x example and the second parabola</td></tr>
+<tr><td><a href="part2_fit_and_plot.py">part2_fit_and_plot.py</a></td><td>Part 2 analytical fits with sympy, coordinate-wise Newton-Raphson, and the two Part 2 plots</td></tr>
+<tr><td><a href="part2_convergence.py">part2_convergence.py</a></td><td>Runs the same Part 2 updates until they converge and reports the sweep counts above</td></tr>
+</table>
+<p><b>Run order for Part 1:</b> run <code>part1_solve_and_plot.py</code> first, then the other part1 scripts. The first script also saves early versions of a few figures under the same file names, and the later scripts replace them with the final versions used on this page.</p>
 
-
-def golden_section_search(x0, y0, f, a, b, tolerance=1e-7):
-    phi = (1 + 5 ** 0.5) / 2
-    resphi = 2 - phi
-    dist_sq = lambda x: (x - x0) ** 2 + (f(x) - y0) ** 2
-    x1, x2 = a + resphi * (b - a), b - resphi * (b - a)
-    f_x1, f_x2 = dist_sq(x1), dist_sq(x2)
-    while abs(b - a) > tolerance:
-        if f_x1 < f_x2:
-            b, x2, f_x2 = x2, x1, f_x1
-            x1 = a + resphi * (b - a)
-            f_x1 = dist_sq(x1)
-        else:
-            a, x1, f_x1 = x1, x2, f_x2
-            x2 = b - resphi * (b - a)
-            f_x2 = dist_sq(x2)
-    best_x = (a + b) / 2
-    return dist_sq(best_x) ** 0.5, best_x</code></pre>
-
-<h3>Part 2 - alternating Newton-Raphson (line shown, parabola same idea with 3 params)</h3>
-<pre><code>m, b = 0.0, 0.0
-for it in range(16):
-    g  = (2/n) * np.sum((m*X + b - Y) * X)      # dMSE/dm
-    gg = (2/n) * np.sum(X**2)                    # d2MSE/dm2
-    m -= g / gg
-    g  = (2/n) * np.sum(m*X + b - Y)              # dMSE/db
-    gg = 2.0
-    b -= g / gg</code></pre>
-
-<p>Full scripts (point_to_curve.py, part2_fit_numeric.py) are in this folder if you want to run them yourself.</p>
-
+<h3>Coordinate-wise Newton-Raphson (from part2_convergence.py)</h3>
+<pre><code>w = np.zeros(A.shape[1])            # all parameters start at 0
+for sweep in range(max_sweeps):
+    w_old = w.copy()
+    for j in range(A.shape[1]):     # one Newton step per parameter
+        r = A @ w - Y
+        g = (2 / n) * A[:, j] @ r            # first derivative of MSE
+        h = (2 / n) * A[:, j] @ A[:, j]      # second derivative of MSE
+        w[j] -= g / h
+    if np.max(np.abs(w - w_old)) &lt; tol:
+        break</code></pre>
+<p>Here the columns of A are [x, 1] for the line and [x&sup2;, x, 1] for the parabola.</p>
 <hr>
 <p style="color:#777; font-size:0.85em;">Larissa Rudenko - Fall 2026</p>
 
